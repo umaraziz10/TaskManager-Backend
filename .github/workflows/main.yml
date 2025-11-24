@@ -32,3 +32,28 @@ jobs:
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+    - name: Deploy to EC2
+      uses: appleboy/ssh-action@master
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: my-fastapi-repo
+        IMAGE_TAG: latest
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USER }}
+        key: ${{ secrets.EC2_SSH_KEY }}
+        envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,AWS_REGION
+        script: |
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+
+          docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+          docker stop fastapi-container || true
+          docker rm fastapi-container || true
+
+          docker run -d \
+            --name fastapi-container \
+            -p 80:9999 \
+            $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
