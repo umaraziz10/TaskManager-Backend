@@ -125,4 +125,4 @@ def get_matakuliah(db: Session = Depends(database.get_db)):
 
 @app.get("/")
 def read_root():
-    return {"Hello from FastAPI Mobcom Backend!!"}
+    return {"Hello from FastAPI Mobcom Backend Hehe!!"}
