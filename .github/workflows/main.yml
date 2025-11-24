@@ -44,16 +44,18 @@ jobs:
         host: ${{ secrets.EC2_HOST }}
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_SSH_KEY }}
+        DB_HOST: ${{ secrets.DB_HOST }}
         envs: ECR_REGISTRY,ECR_REPOSITORY,IMAGE_TAG,AWS_REGION
         script: |
           aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
 
           docker pull $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-          docker stop fastapi-container || TRUE
+          docker stop fastapi-container || true
           docker rm fastapi-container || true
 
           docker run -d \
             --name fastapi-container \
+            -e DB_HOST=$DB_HOST \
             -p 80:9999 \
             $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
