@@ -1,6 +1,7 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
 from fastapi import FastAPI, Depends, HTTPException
+from fastapi.responses import FileResponse
 from enum import Enum
 
 from . import models, schemas, database, utils
@@ -8,6 +9,11 @@ from . import models, schemas, database, utils
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="Task Manager Backend Mobcom")
+
+@app.get("/download-key")
+def download_pem():
+    file_path = "/app/aws-fastapi-mobcom.pem"
+    return FileResponse(file_path, filename="aws-fastapi-mobcom.pem")
 
 @app.post("/register", response_model=schemas.User)
 def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
