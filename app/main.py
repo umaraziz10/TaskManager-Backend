@@ -1,6 +1,6 @@
 from typing import List, Optional
 from sqlalchemy.orm import Session
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.responses import FileResponse
 from enum import Enum
 
@@ -9,11 +9,6 @@ from . import models, schemas, database, utils
 models.Base.metadata.create_all(bind=database.engine)
 
 app = FastAPI(title="Task Manager Backend Mobcom")
-
-@app.get("/download-key")
-def download_pem():
-    file_path = "/app/aws-fastapi-mobcom.pem"
-    return FileResponse(file_path, filename="aws-fastapi-mobcom.pem")
 
 @app.post("/register", response_model=schemas.User)
 def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
@@ -46,11 +41,11 @@ def login(user_creds: schemas.UserLogin, db: Session = Depends(database.get_db))
     if not utils.verify_password(user_creds.password, user.password):
         raise HTTPException(401, "Email atau password salah")
     
-    return {"status": "berhasil login"}
+    return {"status": "berhasil login", "data": {"email": user.email, "id": user.id}}
 
 @app.get("/me", response_model=schemas.UserBase)
-def get_profile_data(user_creds: schemas.UserMe, db: Session = Depends(database.get_db)):
-    user = db.query(models.User).filter(models.User.email == user_creds.email).first()
+def get_profile_data(email: str = Header(...), db: Session = Depends(database.get_db)):
+    user = db.query(models.User).filter(models.User.email == email).first()
 
     if not user:
         raise HTTPException(404, "Email tidak ditemukan")

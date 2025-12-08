@@ -1,7 +1,7 @@
 import  bcrypt
 from . import schemas, database, models
 from sqlalchemy.orm import Session
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Header
 
 def verify_password(plain_password: str, hashed_password_from_db: str) -> bool:
     bytes_plain_password = plain_password.encode('utf-8')
@@ -17,10 +17,10 @@ def get_password_hash(password: str) -> str:
     return stored_password
 
 def get_user_id(
-    user: schemas.UserMe,
+    email: str = Header(...),
     db: Session = Depends(database.get_db)
     ) -> int:
-    user_object = db.query(models.User).filter(models.User.email == user.email).first()
+    user_object = db.query(models.User).filter(models.User.email == email).first()
     if not user_object:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
