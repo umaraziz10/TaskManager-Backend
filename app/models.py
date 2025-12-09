@@ -51,3 +51,7 @@ class Tugas(Base):
     #Metadata
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)
+
+    @property
+    def matakuliah_nama(self):
+        return self.matakuliah.nama if hasattr(self, "matakuliah") and self.matakuliah else None

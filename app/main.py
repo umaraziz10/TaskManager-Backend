@@ -1,5 +1,5 @@
 from typing import List, Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.responses import FileResponse
 from enum import Enum
@@ -74,7 +74,8 @@ def get_tugas(
     db: Session = Depends(database.get_db)
     ):
 
-    query = db.query(models.Tugas).filter(models.Tugas.user_id == user_id)
+    query = db.query(models.Tugas).options(joinedload(models.Tugas.matakuliah))
+    query = query.filter(models.Tugas.user_id == user_id)
 
     if status is not None:
         if status == StatusFilter.selesai:
@@ -101,7 +102,8 @@ def get_progress_tugas(
 
 @app.get("/tugas/{tugas_id}", response_model=schemas.Tugas)
 def get_tugas_by_id(tugas_id: int, db: Session = Depends(database.get_db)):
-    tugas = db.query(models.Tugas).filter(models.Tugas.id == tugas_id).first()
+    query = db.query(models.Tugas).options(joinedload(models.Tugas.matakuliah))
+    tugas = query.filter(models.Tugas.id == tugas_id).first()
     if tugas is None:
         raise HTTPException(status_code=404, detail="tugas not found")
     

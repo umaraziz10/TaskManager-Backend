@@ -35,6 +35,7 @@ class Tugas(TugasBase):
     user_id: int
     created_at: datetime
     updated_at: datetime
+    matakuliah_nama: str
 
     class Config:
         from_attributes = True
